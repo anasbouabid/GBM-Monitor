@@ -51,6 +51,7 @@ window.Apex = {
 
 var trigoStrength = 3;
 var iteration = 11;
+var iteration2 = 11;
 
 function getRandom() {
   var i = iteration;
@@ -66,23 +67,16 @@ function getRangeRandom(yrange) {
   return Math.floor(Math.random() * (yrange.max - yrange.min + 1)) + yrange.min;
 }
 
-function generateMinuteWiseTimeSeries(baseval, count, yrange) {
-  var i = 0;
-  var series = [];
-  while (i < count) {
-    var x = baseval;
-    var y =
-      (Math.sin(i / trigoStrength) * (i / trigoStrength) +
-        i / trigoStrength +
-        1) *
-      (trigoStrength * 2);
-
-    series.push([x, y]);
-    baseval += 300000;
-    i++;
+let hrIndex = 0;
+const hrData = [10,0,11,0,13,0,12,0,11,0,10,0,15,0,17,0,15,0,17,0,19,0,20,0,23,0,24,0,25,0,30,0,29,28,37,35,37,39,50,65,30,25,20,15,10,15,11,10]
+function getHR() {
+  hrIndex++;
+  if(hrIndex == hrData.length-1) {
+    hrIndex = 0;
   }
-  return series;
+  return hrData[hrIndex];
 }
+
 
 function getNewData(baseval, yrange) {
   var newTime = baseval + 300000;
@@ -102,7 +96,7 @@ var optionsLine = {
       enabled: true,
       easing: "linear",
       dynamicAnimation: {
-        speed: 500
+        speed: 50
       }
     },
     dropShadow: {
@@ -124,14 +118,11 @@ var optionsLine = {
                   data: newData1
                 }
               ],
-              subtitle: {
-                text: parseInt(getRandom() * Math.random()).toString()
-              }
             },
             false,
             false
           );
-        }, 100);
+        }, 50);
       }
     },
     toolbar: {
@@ -146,7 +137,7 @@ var optionsLine = {
   },
   stroke: {
     curve: "straight",
-    width: 5
+    width: 2
   },
   grid: {
     padding: {
@@ -163,19 +154,11 @@ var optionsLine = {
   series: [
     {
       name: "Heart Beat",
-      data: generateMinuteWiseTimeSeries(
-        new Date("12/12/2016 00:20:00").getTime(),
-        12,
-        {
-          min: 30,
-          max: 110
-        }
-      )
+      data: [[100,100]]
     }
   ],
   xaxis: {
-    type: "datetime",
-    range: 2700000
+    categories: [""],
   },
   title: {
     text: "Heart Beat Monitor",
@@ -185,7 +168,7 @@ var optionsLine = {
     }
   },
   subtitle: {
-    text: "20",
+    text: "0",
     floating: true,
     align: "right",
     offsetY: 0,
@@ -409,21 +392,21 @@ var chartProgress4 = new ApexCharts(
 );
 chartProgress4.render();
 
-window.setInterval(function () {
-  iteration++;
+// window.setInterval(function () {
+//   iteration++;
 
-  chartLine.updateSeries([
-    {
-      data: [
-        ...chartLine.w.config.series[0].data,
-        [chartLine.w.globals.maxX + 300000, getRandom()]
-      ]
-    }
-  ]);
-}, 500);
+//   chartLine.updateSeries([
+//     {
+//       data: [
+//         ...chartLine.w.config.series[0].data,
+//         [chartLine.w.globals.maxX + 300000, getHR()]
+//       ]
+//     }
+//   ]);
+// }, 50);
 
 let i = setInterval(function () {
-  iteration++;
+  iteration2++;
   var p4Data = getRangeRandom({ min: 95, max: 98 });
   chartProgress4.updateOptions({
     series: [
@@ -451,7 +434,7 @@ setTimeout(function () {
 
 
 
-var wsUri = "ws://192.168.1.101:1337";
+var wsUri = "ws://192.168.1.103:1337";
 var output;
 
 function init() {
@@ -468,6 +451,7 @@ function testWebSocket() {
 
 function onMessage(evt) {
   var data = evt.data.split(",");
+  console.log(data[3]);
   chartProgress1.updateOptions({
     series: [
       {
@@ -482,13 +466,22 @@ function onMessage(evt) {
   chartProgress2.updateOptions({
     series: [
       {
-        data: [data[0]]
+        data: [data[2]]
       }
     ],
     subtitle: {
-      text: data[0] + "%"
+      text: data[2] + "%"
     }
   });
+
+  chartLine.updateSeries([
+    {
+      data: [
+        ...chartLine.w.config.series[0].data,
+        [chartLine.w.globals.maxX + 3000000, parseInt(data[3],10)]
+      ]
+    }
+  ]);
 
 }
 
